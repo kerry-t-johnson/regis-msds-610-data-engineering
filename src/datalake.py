@@ -29,6 +29,20 @@ class DataLake(object):
 
         self.hdfs_client.setXattrs(full_path, **attrs)
 
+    def store_html(self, id, contents, **attrs):
+        try:
+            # If contents is BeautifulSoup, this will work:
+            contents = contents.prettify()
+        except:
+            pass
+
+        full_path = os.path.join(self.hdfs_storage_path, '{id}.html'.format(id=id))
+        with self.hdfs_client.write(full_path, overwrite=True, encoding='utf-8') as hdfs_writer:
+            hdfs_writer.write(contents)
+            hdfs_writer.write('\n')
+
+        self.hdfs_client.setXattrs(full_path, **attrs)
+
     def get_json(self, stem):
         full_path = stem
         # Under some circumstances (e.g. walk), the user might call with the full path
@@ -37,6 +51,19 @@ class DataLake(object):
 
         with self.hdfs_client.read(full_path, encoding='utf-8') as reader:
             return json.load(reader)
+
+    def get_html(self, stem, loader=None):
+        full_path = stem
+        # Under some circumstances (e.g. walk), the user might call with the full path
+        if not full_path.startswith(self.hdfs_type_path):
+            full_path = os.path.join(self.hdfs_type_path, full_path)
+
+        with self.hdfs_client.read(full_path, encoding='utf-8') as reader:
+            content = reader.read()
+            if loader:
+                return loader(content)
+            else:
+                return content
 
     def list(self, stem=None, showAttrs=False):
         root = os.path.join(self.hdfs_type_path, stem) if stem else self.hdfs_type_path

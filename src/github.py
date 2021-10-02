@@ -74,7 +74,7 @@ class GitHub(object):
             for page in range(1, 11):
                 params['page'] = page
 
-                result = self._get_raw(endpoint, params)
+                result = self._get_json(endpoint, params)
                 total_count = result['total_count']
                 max_pages = math.ceil(result['total_count'] / GitHub.PAGE_SIZE)
 
@@ -92,7 +92,7 @@ class GitHub(object):
             self.log_limits()
             raise ex
 
-    def _get_raw(self, endpoint, params={}):
+    def _get_json(self, endpoint, params={}):
         result = requests.get(self.url.format(endpoint=endpoint),
                               auth=self.auth,
                               headers=self.headers,
