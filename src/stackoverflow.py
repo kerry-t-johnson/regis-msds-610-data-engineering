@@ -5,6 +5,27 @@ import re
 
 SITE = 'https://stackoverflow.com'
 
+#: StackOverflow stores a Post's tags as: <tag1><tag2>...<tagN>
+#:
+#: This regular expression captures the tag names and discards
+#: the extraneous syntax
+TAG_RE = re.compile('<(?P<tag>\S+?)>')
+
+
+def extractTags(tag_string):
+    ''' Returns a list of Stack Overflow Tags contained in the given string
+
+        :param tag_string: a string containing <tag1><tag2>...<tagN>
+
+        :return: A list of Stack Overflow Tags: [tag1, tag2, ..., tagN]
+    '''
+    try:
+        return TAG_RE.findall(tag_string)
+    except Exception as ex:
+        # One of the input lines contains ",,,,,,," in the title
+        # which is not correctly interpreted by the Spark CSV parser
+        return []
+
 
 class StopIterating(Exception):
     pass
